@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>타이어 정비소</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{background:#1a1a2e;color:#eee;font-family:'Segoe UI',sans-serif;
+         min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:.5rem;}
+
+    /* ── INTRO ── */
+    #intro{text-align:center;max-width:460px;width:100%;padding-top:1.5rem;}
+    .isign{background:linear-gradient(135deg,#f59e0b,#d97706);border:3px solid #92400e;
+           border-radius:16px;padding:.7rem 1.8rem;font-size:1.5rem;font-weight:bold;
+           color:#1a1a0e;display:inline-block;margin-bottom:1.2rem;
+           box-shadow:0 4px 0 #92400e,0 6px 12px rgba(0,0,0,.4);}
+    .ichar{font-size:5rem;margin:.3rem 0;}
+    .ibub{background:#fff;color:#333;border-radius:14px;padding:.5rem 1rem;
+          font-size:.85rem;display:inline-block;position:relative;margin-bottom:.8rem;}
+    .ibub::before{content:'';position:absolute;top:-9px;left:38px;
+                  border:6px solid transparent;border-bottom-color:#fff;}
+    .idesc{color:#888;font-size:.8rem;line-height:1.65;margin-bottom:1.5rem;}
+    .btn-start{background:linear-gradient(135deg,#f59e0b,#d97706);border:none;
+               color:#1a1a0e;font-size:1rem;font-weight:bold;padding:.7rem 2.5rem;
+               border-radius:12px;cursor:pointer;box-shadow:0 4px 0 #92400e;
+               transition:transform .1s,box-shadow .1s;}
+    .btn-start:active{transform:translateY(2px);box-shadow:0 2px 0 #92400e;}
+
+    /* ── GAME ── */
+    #game{display:none;width:100%;max-width:640px;}
+
+    .shop-hdr{background:#16213e;border:2px solid #f59e0b;border-radius:12px;
+              padding:.45rem .8rem;display:flex;align-items:center;gap:.6rem;margin-bottom:.5rem;}
+    .ssign{background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:7px;
+           padding:.2rem .6rem;font-size:.78rem;font-weight:bold;color:#1a1a0e;
+           white-space:nowrap;flex-shrink:0;}
+    .tarea{flex:1;}
+    .tlbl2{font-size:.65rem;color:#f59e0b;margin-bottom:1px;}
+    .ttrack{background:#0d1730;border-radius:5px;height:9px;overflow:hidden;}
+    .tfill{height:100%;border-radius:5px;background:#4ade80;transition:width .9s linear,background .4s;}
+    .tfill.warn{background:#facc15;}
+    .tfill.danger{background:#f87171;}
+    @keyframes dp{0%,100%{opacity:1}50%{opacity:.4}}
+    .tfill.danger{animation:dp .5s ease-in-out infinite;}
+    .tnum{font-size:.72rem;font-weight:bold;text-align:right;margin-top:1px;}
+    .iarea{text-align:right;flex-shrink:0;}
+    .ilbl{font-size:.65rem;color:#4ade80;}
+    .ival{font-size:1rem;font-weight:bold;color:#4ade80;font-variant-numeric:tabular-nums;}
+
+    .crow{display:flex;align-items:center;gap:.6rem;background:#16213e;
+          border-radius:10px;padding:.45rem .7rem;margin-bottom:.5rem;}
+    .cico{font-size:2rem;flex-shrink:0;}
+    .cbub{background:#fff;color:#333;border-radius:9px;padding:.3rem .6rem;
+          font-size:.75rem;position:relative;flex:1;}
+    .cbub::before{content:'';position:absolute;left:-7px;top:50%;transform:translateY(-50%);
+                  border:5px solid transparent;border-right-color:#fff;}
+    .custb{flex-shrink:0;text-align:center;background:#2d2d5e;border-radius:9px;
+           padding:.3rem .6rem;font-size:.75rem;}
+    .custb .ci{font-size:1.1rem;}
+    .custb .cp{color:#4ade80;font-size:.68rem;}
+    .rndb{flex-shrink:0;background:#2d2d5e;border-radius:9px;padding:.3rem .45rem;
+          text-align:center;font-size:.68rem;color:#a78bfa;}
+
+    .scene{background:#16213e;border-radius:11px;padding:.4rem;margin-bottom:.5rem;}
+    #svg-s{width:100%;height:auto;display:block;}
+
+    @keyframes bp{0%,100%{opacity:1}50%{opacity:.3}}
+    .bpulse circle{animation:bp .65s ease-in-out infinite;}
+
+    .si{min-height:2.8rem;margin-bottom:.45rem;text-align:center;}
+    .si h2{font-size:1.05rem;margin-bottom:.2rem;}
+    .si p{color:#888;font-size:.78rem;}
+
+    .panel{display:none;}.panel.on{display:block;}
+
+    .btn{background:#f59e0b;border:none;color:#1a1a0e;padding:.6rem 2rem;
+         border-radius:11px;cursor:pointer;font-size:.88rem;font-weight:bold;
+         display:block;margin:0 auto .6rem;box-shadow:0 3px 0 #d97706;
+         transition:transform .1s,box-shadow .1s;}
+    .btn:hover{background:#fbbf24;}
+    .btn:active{transform:translateY(2px);box-shadow:0 1px 0 #d97706;}
+    .btn:disabled{background:#2d2d5e;color:#555;cursor:default;box-shadow:none;}
+    .pb{background:#0d1730;border-radius:6px;height:8px;overflow:hidden;margin:.4rem 0;}
+    .pf{background:#f59e0b;height:100%;border-radius:6px;transition:width .1s;}
+    .ctr{color:#888;font-size:.78rem;}
+
+    .tlbl3{font-size:.88rem;font-weight:bold;color:#facc15;margin-bottom:.4rem;}
+    .ttrack2{position:relative;width:300px;height:24px;background:#0d1730;
+              border-radius:12px;margin:0 auto .35rem;overflow:hidden;cursor:pointer;}
+    .tzone{position:absolute;top:0;height:100%;background:rgba(74,222,128,.4);}
+    .tcur{position:absolute;top:1px;width:4px;height:22px;background:#fff;border-radius:2px;}
+    .tres{font-size:.83rem;min-height:1.1rem;margin-bottom:.12rem;}
+    .tres.g{color:#4ade80;}.tres.b{color:#f87171;}
+    .tctr2{color:#888;font-size:.78rem;}
+    .thint{color:#555;font-size:.7rem;margin-top:.2rem;}
+
+    .albl{font-size:.88rem;font-weight:bold;margin-bottom:.12rem;}
+    .asub{color:#888;font-size:.73rem;margin-bottom:.55rem;}
+    .agw{display:flex;align-items:center;justify-content:center;gap:.6rem;margin-bottom:.55rem;}
+    .abtn{background:#2d2d5e;border:none;color:#eee;width:35px;height:35px;
+          border-radius:8px;cursor:pointer;font-size:.9rem;font-weight:bold;
+          user-select:none;-webkit-user-select:none;}
+    .abtn:hover{background:#3d3d8e;}
+    .ag{position:relative;width:220px;height:15px;background:#0d1730;border-radius:8px;}
+    .an{position:absolute;top:-5px;width:6px;height:25px;background:#f59e0b;
+        border-radius:3px;transform:translateX(-50%);pointer-events:none;}
+    .acfm{background:#f59e0b;border:none;color:#1a1a0e;padding:.48rem 1.5rem;
+          border-radius:9px;cursor:pointer;font-size:.83rem;font-weight:bold;
+          box-shadow:0 3px 0 #d97706;}
+    .acfm:hover{background:#fbbf24;}
+
+    /* overlays */
+    .ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.84);
+        align-items:center;justify-content:center;z-index:30;}
+    .ov.on{display:flex;}
+    .ob{background:#16213e;border-radius:18px;padding:1.6rem 1.8rem;
+        text-align:center;max-width:360px;width:90%;}
+    .ob .big{font-size:3rem;margin-bottom:.3rem;}
+    .ob h2{font-size:1.4rem;margin-bottom:.6rem;}
+    .ob h2.w{color:#4ade80;}.ob h2.l{color:#f87171;}.ob h2.n{color:#facc15;}
+    .rrow{display:flex;justify-content:space-between;padding:.35rem 0;
+          border-bottom:1px solid #2d2d5e;font-size:.8rem;}
+    .rrow:last-child{border-bottom:none;}
+    .rrow .lbl{color:#888;}
+    .rrow .v.g{color:#4ade80;}.rrow .v.b{color:#f87171;}
+    .earn{font-size:1.2rem;font-weight:bold;color:#4ade80;margin:.4rem 0;}
+    .ob-btn{background:#f59e0b;border:none;color:#1a1a0e;padding:.55rem 1.6rem;
+            border-radius:9px;cursor:pointer;font-size:.85rem;font-weight:bold;
+            box-shadow:0 3px 0 #d97706;margin-top:.7rem;}
+    .ob-btn:hover{background:#fbbf24;}
+    .ibig{font-size:1.8rem;font-weight:bold;color:#4ade80;margin:.3rem 0;}
+    .grade{font-size:1rem;font-weight:bold;margin-bottom:.3rem;}
+    .rrows{text-align:left;margin:.4rem 0;}
+  </style>
+</head>
+<body>
+
+<!-- INTRO -->
+<div id="intro">
+  <div class="isign">🔧 타이어 정비소 🔧</div>
+  <div class="ichar">🧑‍🔧</div>
+  <div class="ibub">지금부터 타이어 교체를 해볼까요?</div>
+  <p class="idesc">
+    고객 차량 타이어를 교체하고 수입을 올리세요!<br>
+    차종마다 교체 비용과 제한시간이 달라요.<br>
+    얼라인먼트는 힌트 없이 스스로 맞춰야 해요!
+  </p>
+  <button class="btn-start" onclick="startGame()">🚗 시작하기!</button>
+</div>
+
+<!-- GAME -->
+<div id="game">
+  <div class="shop-hdr">
+    <div class="ssign">🔧 타이어 정비소</div>
+    <div class="tarea">
+      <div class="tlbl2">⏱ TIME</div>
+      <div class="ttrack"><div id="tfill" class="tfill" style="width:100%"></div></div>
+      <div id="tnum" class="tnum">90</div>
+    </div>
+    <div class="iarea">
+      <div class="ilbl">💰 수입금</div>
+      <div class="ival" id="ival">0원</div>
+    </div>
+  </div>
+
+  <div class="crow">
+    <div class="cico" id="cico">🧑‍🔧</div>
+    <div class="cbub" id="cbub">고객을 기다리는 중...</div>
+    <div class="custb">
+      <div class="ci" id="custE">🚗</div>
+      <div id="custN" style="font-weight:bold">-</div>
+      <div class="cp" id="custP">-</div>
+    </div>
+    <div class="rndb" id="rndb">1 / 3</div>
+  </div>
+
+  <div class="scene">
+    <svg id="svg-s" viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg">
+      <line x1="0" y1="192" x2="600" y2="192" stroke="#2d3560" stroke-width="2"/>
+      <rect x="434" y="188" width="42" height="6" fill="#888" rx="2"/>
+      <rect id="jst" x="445" y="188" width="20" height="0" fill="#777" rx="2"/>
+      <g id="carg">
+        <rect id="cbody" x="85" y="102" width="430" height="60" rx="8" fill="#2a3a8e" stroke="#3a4aae" stroke-width="1.5"/>
+        <path id="croof" d="M172,102 L200,60 L410,60 L440,102 Z" fill="#2a3a8e" stroke="#3a4aae" stroke-width="1.5"/>
+        <path d="M400,102 L432,62 L410,62 L394,102 Z" fill="#1a2560" opacity=".85"/>
+        <path d="M205,62 L218,102 L240,102 L210,62 Z" fill="#1a2560" opacity=".85"/>
+        <path d="M245,102 L242,62 L392,62 L388,102 Z" fill="#1a2560" opacity=".85"/>
+        <rect x="510" y="120" width="16" height="24" rx="4" fill="#3a4aae"/>
+        <rect x="74"  y="120" width="16" height="24" rx="4" fill="#3a4aae"/>
+        <rect x="74"  y="152" width="12" height="5"  rx="2" fill="#555"/>
+        <circle id="rhl" cx="148" cy="162" r="35" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-dasharray="6,4" opacity="0"/>
+        <g id="rw" transform="translate(148,162)">
+          <circle id="rtire" r="30" fill="#111" stroke="#2d3560" stroke-width="2"/>
+          <circle id="rrim"  r="20" fill="#3a3a60" stroke="#4a4a80" stroke-width="1"/>
+          <circle r="6" fill="#666"/>
+          <g id="rb0"><circle cx="0"    cy="-13"  r="4.5" fill="#aaa" stroke="#666" stroke-width=".5"/></g>
+          <g id="rb1"><circle cx="12.4" cy="-4"   r="4.5" fill="#aaa" stroke="#666" stroke-width=".5"/></g>
+          <g id="rb2"><circle cx="7.6"  cy="10.5" r="4.5" fill="#aaa" stroke="#666" stroke-width=".5"/></g>
+          <g id="rb3"><circle cx="-7.6" cy="10.5" r="4.5" fill="#aaa" stroke="#666" stroke-width=".5"/></g>
+          <g id="rb4"><circle cx="-12.4" cy="-4"  r="4.5" fill="#aaa" stroke="#666" stroke-width=".5"/></g>
+        </g>
+        <circle id="fhl" cx="455" cy="162" r="35" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-dasharray="6,4" opacity="0"/>
+        <g id="fw" transform="translate(455,162)">
+          <circle id="ftire" r="30" fill="#111" stroke="#2d3560" stroke-width="2"/>
+          <circle id="frim"  r="20" fill="#3a3a60" stroke="#4a4a80" stroke-width="1"/>
+          <circle r="6" fill="#666"/>
+          <g id="fb0"><circle cx="0"    cy="-13"  r="4.5" fill="#aaa" stroke="#666" stroke-width=".5"/></g>
+          <g id="fb1"><circle cx="12.4" cy="-4"   r="4.5" fill="#aaa" stroke="#666" stroke-width=".5"/></g>
+          <g id="fb2"><circle cx="7.6"  cy="10.5" r="4.5" fill="#aaa" stroke="#666" stroke-width=".5"/></g>
+          <g id="fb3"><circle cx="-7.6" cy="10.5" r="4.5" fill="#aaa" stroke="#666" stroke-width=".5"/></g>
+          <g id="fb4"><circle cx="-12.4" cy="-4"  r="4.5" fill="#aaa" stroke="#666" stroke-width=".5"/></g>
+        </g>
+      </g>
+      <rect id="jpb"  x="170" y="187" width="260" height="7" rx="3" fill="#0d1730" style="display:none"/>
+      <rect id="jpbf" x="170" y="187" width="0"   height="7" rx="3" fill="#f59e0b"/>
+    </svg>
+  </div>
+
+  <div class="si"><h2 id="stit">-</h2><p id="sdesc">-</p></div>
+
+  <div id="act">
+    <div class="panel" id="pjack">
+      <button class="btn" id="bjack" onclick="handleJack()">⬆️ 잭 올리기</button>
+      <div class="pb"><div class="pf" id="jpf" style="width:0%"></div></div>
+      <p class="ctr" id="jctr">0 / 10 클릭</p>
+    </div>
+    <div class="panel" id="ptiming">
+      <p class="tlbl3">⚙️ 타이밍을 맞춰 클릭!</p>
+      <div class="ttrack2" id="ttrack" onclick="clickTiming()">
+        <div id="tzone" class="tzone"></div>
+        <div id="tcur"  class="tcur" style="left:0"></div>
+      </div>
+      <p class="tres" id="tres"></p>
+      <p class="tctr2" id="tctr">볼트 1 / 5</p>
+      <p class="thint">초록 구간에서 클릭하세요</p>
+    </div>
+    <div class="panel" id="pswap">
+      <button class="btn" id="bswap" onclick="handleSwap()">🔄 타이어 교체</button>
+      <p class="ctr" style="margin-top:.3rem">낡은 타이어를 새 타이어로 교체합니다</p>
+    </div>
+    <div class="panel" id="palign">
+      <p class="albl">📐 얼라인먼트 조정</p>
+      <p class="asub">올바른 각도를 맞추세요 — 힌트 없음</p>
+      <div class="agw">
+        <button class="abtn" id="bal">◀</button>
+        <div class="ag"><div id="an" class="an" style="left:50%"></div></div>
+        <button class="abtn" id="bar">▶</button>
+      </div>
+      <button class="acfm" onclick="confirmAlign()">확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- 라운드 결과 -->
+<div class="ov" id="roundOv">
+  <div class="ob">
+    <div class="big" id="ro-e">✅</div>
+    <h2 id="ro-t"></h2>
+    <div class="rrows" id="ro-rows"></div>
+    <div class="earn" id="ro-earn"></div>
+    <button class="ob-btn" id="ro-btn" onclick="nextRound()">다음 고객 →</button>
+  </div>
+</div>
+
+<!-- 최종 결과 -->
+<div class="ov" id="finalOv">
+  <div class="ob">
+    <div class="big" id="fo-e">🏆</div>
+    <h2 id="fo-t">오늘의 정비 결과</h2>
+    <div class="grade" id="fo-g"></div>
+    <div class="ibig" id="fo-i"></div>
+    <div class="rrows" id="fo-rows"></div>
+    <button class="ob-btn" onclick="goIntro()">다시 하기</button>
+  </div>
+</div>
+
+<script>
+const CARS={
+  sedan: {name:'세단',   e:'🚗',bc:'#2a3a8e',bs:'#3a4aae',price:25000,time:90, fR:[42,58],rR:[40,56]},
+  suv:   {name:'SUV',   e:'🚙',bc:'#1e5e3a',bs:'#2e8e5a',price:35000,time:100,fR:[52,68],rR:[54,70]},
+  sports:{name:'스포츠카',e:'🏎️',bc:'#7e1a2a',bs:'#ae2a3a',price:50000,time:110,fR:[14,30],rR:[10,26]},
+  truck: {name:'트럭',   e:'🚛',bc:'#5e3a1a',bs:'#8e5a2a',price:40000,time:105,fR:[66,82],rR:[68,85]},
+};
+const CK=Object.keys(CARS);
+const SEQ=['jack_up','rear_rm','rear_sw','rear_al','rear_tk','front_rm','front_sw','front_al','front_tk','jack_dn'];
+const MAX_R=3;
+
+function ri(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+function fmt(n){return n.toLocaleString()+'원';}
+
+// state
+let round=0,totalInc=0,roundRes=[];
+let car=null,carTgt={},carAv={};
+let bGd={rear:0,front:0};
+let wSt='jack_up',jUp=0,jDn=0,bDone=0,aVal=50;
+let timeLeft=0,timerIv=null;
+
+// timing
+let tAct=false,tPos=0,tDir=1,tDone=false,tRAF=null;
+const TW=300,TZW=54,TSP=2.8;
+let tZL=0;
+
+// align move
+let aDir2=0,aSp=0.5,aIv=null,aAcc=null;
+
+// SVG
+const carg=document.getElementById('carg');
+const jst=document.getElementById('jst');
+const jpb=document.getElementById('jpb');
+const jpbf=document.getElementById('jpbf');
+
+function bG(w,i){return document.getElementById((w==='rear'?'rb':'fb')+i);}
+function bC(w,i){return bG(w,i).querySelector('circle');}
+function tEl(w){return document.getElementById(w==='rear'?'rtire':'ftire');}
+function rEl(w){return document.getElementById(w==='rear'?'rrim':'frim');}
+function hEl(w){return document.getElementById(w==='rear'?'rhl':'fhl');}
+
+function setLift(n){
+  const l=(n/10)*38;
+  carg.setAttribute('transform',`translate(0,-${l})`);
+  jst.setAttribute('y',188-l);jst.setAttribute('height',l);
+}
+function showPanel(id){
+  ['pjack','ptiming','pswap','palign'].forEach(p=>
+    document.getElementById(p).classList.toggle('on',p===id));
+}
+function setChar(ico,msg){
+  document.getElementById('cico').textContent=ico;
+  document.getElementById('cbub').textContent=msg;
+}
+function hl(w,on){hEl(w).setAttribute('opacity',on?'0.9':'0');}
+function setBolts(w,mode){
+  for(let i=0;i<5;i++){
+    const c=bC(w,i);
+    if(mode==='show'||mode==='rm'){c.setAttribute('fill','#aaa');c.setAttribute('opacity','1');c.setAttribute('stroke','#666');}
+    if(mode==='hide') c.setAttribute('opacity','0');
+    if(mode==='hole'){c.setAttribute('fill','#2a2a2a');c.setAttribute('opacity','.7');c.setAttribute('stroke','#555');}
+    bG(w,i).classList.remove('bpulse');
+  }
+}
+function setPulse(w,i){
+  for(let j=0;j<5;j++) bG(w,j).classList.remove('bpulse');
+  if(i>=0&&i<5) bG(w,i).classList.add('bpulse');
+}
+
+// ── 타이머 ─────────────────────────────────────────────────────
+function startTimer(sec){
+  timeLeft=sec; updateTimerUI();
+  timerIv=setInterval(()=>{
+    timeLeft--; updateTimerUI();
+    if(timeLeft<=0){clearInterval(timerIv);onTimeUp();}
+  },1000);
+}
+function stopTimer(){clearInterval(timerIv);timerIv=null;}
+function updateTimerUI(){
+  const pct=timeLeft/car.time*100;
+  const bar=document.getElementById('tfill');
+  bar.style.width=pct+'%';
+  bar.className='tfill'+(pct<=25?' danger':pct<=50?' warn':'');
+  document.getElementById('tnum').textContent=timeLeft;
+  if(timeLeft===15) setChar('😅','서두르세요!');
+  else if(timeLeft===8) setChar('😰','빨리빨리!');
+}
+function onTimeUp(){
+  tAct=false;cancelAnimationFrame(tRAF);stopAlignMove();
+  setChar('😰','시간 초과!');
+  showPanel('pjack'); // hide interactive panels
+  document.getElementById('stit').textContent='⌛ 시간 초과!';
+  document.getElementById('sdesc').textContent='제한시간이 지났습니다.';
+  setTimeout(()=>endRound(false,true),700);
+}
+
+// ── 타이밍 게임 ────────────────────────────────────────────────
+function startTiming(){
+  showPanel('ptiming');
+  tZL=ri(20,TW-TZW-20);
+  document.getElementById('tzone').style.left=tZL+'px';
+  document.getElementById('tzone').style.width=TZW+'px';
+  document.getElementById('tres').textContent='';
+  document.getElementById('tctr').textContent=`볼트 ${bDone+1} / 5`;
+  const w=wSt.startsWith('rear')?'rear':'front';
+  setPulse(w,bDone);
+  tPos=0;tDir=1;tDone=false;tAct=true;
+  cancelAnimationFrame(tRAF);tLoop();
+}
+function tLoop(){
+  if(!tAct) return;
+  tPos+=tDir*TSP;
+  if(tPos>=TW-4){tPos=TW-4;tDir=-1;}
+  if(tPos<=0){tPos=0;tDir=1;}
+  document.getElementById('tcur').style.left=tPos+'px';
+  tRAF=requestAnimationFrame(tLoop);
+}
+function clickTiming(){
+  if(!tAct||tDone) return;
+  tAct=false;tDone=true;cancelAnimationFrame(tRAF);
+  const good=tPos>=tZL&&tPos<=tZL+TZW;
+  const w=wSt.startsWith('rear')?'rear':'front';
+  const isRm=wSt.endsWith('rm');
+  const el=document.getElementById('tres');
+  el.className='tres '+(good?'g':'b');
+  el.textContent=good?'✓ 완벽!':'✗ 타이밍 미스!';
+  setPulse(w,-1);
+  setTimeout(()=>{
+    if(isRm) bC(w,bDone).setAttribute('opacity','0');
+    else{
+      bC(w,bDone).setAttribute('fill',good?'#bbb':'#887');
+      bC(w,bDone).setAttribute('opacity','1');
+      bC(w,bDone).setAttribute('stroke',good?'#777':'#665');
+      bGd[w]+=good?1:0;
+    }
+    bDone++;
+    if(bDone>=5){bDone=0;setTimeout(advance,300);}
+    else setTimeout(startTiming,400);
+  },380);
+}
+
+// ── 얼라인먼트 ─────────────────────────────────────────────────
+function startAlignMove(d){
+  stopAlignMove();aDir2=d;aSp=0.5;moveA2();
+  aAcc=setTimeout(()=>{aIv=setInterval(()=>{aSp=Math.min(aSp+.25,3);moveA2();},55);},380);
+}
+function moveA2(){
+  aVal=Math.max(0,Math.min(100,aVal+aDir2*aSp));
+  document.getElementById('an').style.left=aVal+'%';
+}
+function stopAlignMove(){clearTimeout(aAcc);clearInterval(aIv);aIv=null;}
+function confirmAlign(){
+  stopAlignMove();
+  const w=wSt==='rear_al'?'rear':'front';
+  carAv[w]=aVal; advance();
+}
+
+// ── 잭 ─────────────────────────────────────────────────────────
+function handleJack(){
+  if(wSt==='jack_up'){
+    if(jUp>=10) return; jUp++;
+    setLift(jUp);
+    jpb.style.display='block';
+    jpbf.setAttribute('width',(jUp/10)*260);
+    document.getElementById('jpf').style.width=(jUp/10*100)+'%';
+    document.getElementById('jctr').textContent=`${jUp} / 10 클릭`;
+    if(jUp===10){
+      document.getElementById('bjack').disabled=true;
+      jpb.style.display='none';jpbf.setAttribute('width',0);
+      setChar('🧑‍🔧','자, 볼트를 풀어볼까요!');
+      setTimeout(advance,400);
+    }
+  } else {
+    if(jDn>=10) return; jDn++;
+    setLift(10-jDn);
+    jpb.style.display='block';
+    jpbf.setAttribute('width',((10-jDn)/10)*260);
+    document.getElementById('jpf').style.width=(jDn/10*100)+'%';
+    document.getElementById('jctr').textContent=`${jDn} / 10 클릭`;
+    if(jDn===10){
+      document.getElementById('bjack').disabled=true;
+      jpb.style.display='none';jpbf.setAttribute('width',0);
+      stopTimer();
+      setTimeout(()=>endRound(true,false),400);
+    }
+  }
+}
+
+// ── 교체 ─────────────────────────────────────────────────────────
+function handleSwap(){
+  document.getElementById('bswap').disabled=true;
+  const w=wSt==='rear_sw'?'rear':'front';
+  tEl(w).setAttribute('fill','#181818');tEl(w).setAttribute('stroke','#5a5aaa');
+  rEl(w).setAttribute('fill','#4a5aae');rEl(w).setAttribute('stroke','#6a7ace');
+  setChar('🧑‍🔧','새 타이어 장착!');
+  setTimeout(advance,600);
+}
+
+// ── 상태 렌더 ─────────────────────────────────────────────────
+function advance(){
+  const i=SEQ.indexOf(wSt);
+  if(i>=SEQ.length-1) return;
+  wSt=SEQ[i+1]; renderWork();
+}
+
+const CHAR_ST={
+  jack_up: ['🧑‍🔧','잭을 올려요!'],
+  rear_rm: ['🧑‍🔧','뒷바퀴 볼트 제거!'],
+  rear_sw: ['🧑‍🔧','타이어 교체!'],
+  rear_al: ['🤔','얼라인먼트 조정 중...'],
+  rear_tk: ['🧑‍🔧','볼트 조이기!'],
+  front_rm:['🧑‍🔧','앞바퀴 볼트 제거!'],
+  front_sw:['🧑‍🔧','타이어 교체!'],
+  front_al:['🤔','얼라인먼트 조정 중...'],
+  front_tk:['🧑‍🔧','마무리 볼트 조이기!'],
+  jack_dn: ['🧑‍🔧','잭을 내려요!'],
+};
+
+function renderWork(){
+  hl('rear',false);hl('front',false);
+  const [ico,bub]=CHAR_ST[wSt]||['🧑‍🔧','작업 중...'];
+  setChar(ico,bub);
+  const T=document.getElementById('stit');
+  const D=document.getElementById('sdesc');
+
+  if(wSt==='jack_up'){
+    T.textContent='잭으로 차 들기';D.textContent='버튼을 10번 클릭해 차를 들어올리세요!';
+    document.getElementById('bjack').textContent='⬆️ 잭 올리기';
+    document.getElementById('bjack').disabled=false;
+    document.getElementById('jpf').style.width='0%';
+    document.getElementById('jctr').textContent='0 / 10 클릭';
+    setBolts('rear','show');setBolts('front','show');showPanel('pjack');
+  } else if(wSt==='rear_rm'){
+    T.textContent='뒷바퀴 볼트 제거';D.textContent='타이밍에 맞춰 볼트 5개를 제거하세요!';
+    hl('rear',true);setBolts('rear','show');startTiming();
+  } else if(wSt==='rear_sw'){
+    T.textContent='뒷바퀴 타이어 교체';D.textContent='버튼을 눌러 새 타이어로 교체하세요.';
+    hl('rear',true);document.getElementById('bswap').disabled=false;showPanel('pswap');
+  } else if(wSt==='rear_al'){
+    T.textContent='뒷바퀴 얼라인먼트 조정';D.textContent='올바른 각도를 맞추세요. 힌트 없음!';
+    hl('rear',true);aVal=50;document.getElementById('an').style.left='50%';showPanel('palign');
+  } else if(wSt==='rear_tk'){
+    T.textContent='뒷바퀴 볼트 조이기';D.textContent='타이밍에 맞춰 볼트 5개를 조이세요!';
+    hl('rear',true);setBolts('rear','hole');startTiming();
+  } else if(wSt==='front_rm'){
+    T.textContent='앞바퀴 볼트 제거';D.textContent='타이밍에 맞춰 볼트 5개를 제거하세요!';
+    hl('front',true);setBolts('front','show');startTiming();
+  } else if(wSt==='front_sw'){
+    T.textContent='앞바퀴 타이어 교체';D.textContent='버튼을 눌러 새 타이어로 교체하세요.';
+    hl('front',true);document.getElementById('bswap').disabled=false;showPanel('pswap');
+  } else if(wSt==='front_al'){
+    T.textContent='앞바퀴 얼라인먼트 조정';D.textContent='올바른 각도를 맞추세요. 힌트 없음!';
+    hl('front',true);aVal=50;document.getElementById('an').style.left='50%';showPanel('palign');
+  } else if(wSt==='front_tk'){
+    T.textContent='앞바퀴 볼트 조이기';D.textContent='타이밍에 맞춰 볼트 5개를 조이세요!';
+    hl('front',true);setBolts('front','hole');startTiming();
+  } else if(wSt==='jack_dn'){
+    T.textContent='잭 내리기';D.textContent='버튼을 10번 클릭해 차를 내리세요!';
+    document.getElementById('bjack').textContent='⬇️ 잭 내리기';
+    document.getElementById('bjack').disabled=false;
+    document.getElementById('jpf').style.width='0%';
+    document.getElementById('jctr').textContent='0 / 10 클릭';
+    setBolts('rear','show');setBolts('front','show');showPanel('pjack');
+  }
+}
+
+// ── 라운드 관리 ────────────────────────────────────────────────
+function startRound(){
+  const k=CK[ri(0,3)];
+  car=CARS[k];
+  carTgt={front:ri(...car.fR),rear:ri(...car.rR)};
+  carAv={front:50,rear:50};
+  bGd={rear:0,front:0};
+  jUp=0;jDn=0;bDone=0;wSt='jack_up';
+
+  document.getElementById('custE').textContent=car.e;
+  document.getElementById('custN').textContent=car.name;
+  document.getElementById('custP').textContent=fmt(car.price);
+  document.getElementById('rndb').textContent=`${round} / ${MAX_R}`;
+
+  document.getElementById('cbody').setAttribute('fill',car.bc);
+  document.getElementById('cbody').setAttribute('stroke',car.bs);
+  document.getElementById('croof').setAttribute('fill',car.bc);
+  document.getElementById('croof').setAttribute('stroke',car.bs);
+
+  ['rear','front'].forEach(w=>{
+    tEl(w).setAttribute('fill','#111');tEl(w).setAttribute('stroke','#2d3560');
+    rEl(w).setAttribute('fill','#3a3a60');rEl(w).setAttribute('stroke','#4a4a80');
+    setBolts(w,'show');hl(w,false);
+  });
+  setLift(0);
+  jpb.style.display='none';jpbf.setAttribute('width',0);
+
+  setChar('🧑‍🔧',`${car.e} ${car.name} 고객이 왔어요!`);
+  startTimer(car.time);
+  renderWork();
+}
+
+function endRound(done,timeup){
+  stopTimer();
+  tAct=false;cancelAnimationFrame(tRAF);stopAlignMove();
+
+  const rE=Math.abs(carAv.rear -carTgt.rear);
+  const fE=Math.abs(carAv.front-carTgt.front);
+  const rOk=rE<=15,fOk=fE<=15;
+  const tb=bGd.rear+bGd.front;
+
+  let earned=0;
+  if(done&&!timeup){
+    earned=car.price;
+    if(!rOk) earned-=Math.round(car.price*.25);
+    if(!fOk) earned-=Math.round(car.price*.25);
+    earned-=(10-tb)*500;
+    if(timeLeft>car.time*.5) earned+=2000;
+    earned=Math.max(0,earned);
+  }
+  totalInc+=earned;
+  document.getElementById('ival').textContent=fmt(totalInc);
+  roundRes.push({car,earned,rOk,fOk,tb,timeup,rE,fE});
+
+  const win=done&&!timeup;
+  document.getElementById('ro-e').textContent=timeup?'⌛':win?'✅':'⚠️';
+  const rt=document.getElementById('ro-t');
+  rt.textContent=timeup?'시간 초과!':win?'작업 완료!':'아쉬운 작업...';
+  rt.className=timeup?'l':win?'w':'n';
+  setChar(timeup?'😰':win?'😊':'😅',
+          timeup?'다음엔 더 빨리!':win?'잘 하셨어요!':'더 열심히 해봐요!');
+
+  document.getElementById('ro-rows').innerHTML=`
+    <div class="rrow"><span class="lbl">뒷바퀴 얼라인먼트</span><span class="v ${rOk?'g':'b'}">오차 ${Math.round(rE)} ${rOk?'✓':'✗'}</span></div>
+    <div class="rrow"><span class="lbl">앞바퀴 얼라인먼트</span><span class="v ${fOk?'g':'b'}">오차 ${Math.round(fE)} ${fOk?'✓':'✗'}</span></div>
+    <div class="rrow"><span class="lbl">볼트 품질</span><span class="v ${tb>=8?'g':'b'}">${tb}/10</span></div>
+  `;
+  document.getElementById('ro-earn').textContent=`수입: ${fmt(earned)}`;
+  document.getElementById('ro-btn').textContent=round>=MAX_R?'최종 결과 보기':'다음 고객 →';
+  document.getElementById('roundOv').classList.add('on');
+}
+
+function nextRound(){
+  document.getElementById('roundOv').classList.remove('on');
+  if(round>=MAX_R){showFinal();return;}
+  round++;startRound();
+}
+
+function showFinal(){
+  const maxP=roundRes.reduce((s,r)=>s+r.car.price,0);
+  const pct=maxP>0?totalInc/maxP:0;
+  let grade,emoji;
+  if(pct>=.85){grade='S — 최고의 정비사! 🏆';emoji='🏆';}
+  else if(pct>=.65){grade='A — 훌륭한 실력이에요!';emoji='🎉';}
+  else if(pct>=.45){grade='B — 꽤 잘하시는군요!';emoji='😊';}
+  else if(pct>=.25){grade='C — 더 연습이 필요해요';emoji='😅';}
+  else{grade='F — 다시 도전해봐요!';emoji='😢';}
+
+  document.getElementById('fo-e').textContent=emoji;
+  document.getElementById('fo-g').textContent=grade;
+  document.getElementById('fo-i').textContent=fmt(totalInc);
+  document.getElementById('fo-rows').innerHTML=roundRes.map((r,i)=>`
+    <div class="rrow">
+      <span class="lbl">${i+1}번 고객 (${r.car.e}${r.car.name})</span>
+      <span class="v ${r.earned>0?'g':'b'}">${fmt(r.earned)}</span>
+    </div>`).join('');
+  document.getElementById('finalOv').classList.add('on');
+}
+
+function startGame(){
+  round=1;totalInc=0;roundRes=[];
+  document.getElementById('ival').textContent='0원';
+  document.getElementById('intro').style.display='none';
+  document.getElementById('game').style.display='block';
+  startRound();
+}
+function goIntro(){
+  document.getElementById('finalOv').classList.remove('on');
+  document.getElementById('game').style.display='none';
+  document.getElementById('intro').style.display='block';
+}
+
+// 얼라인먼트 버튼
+const balEl=document.getElementById('bal'),barEl=document.getElementById('bar');
+balEl.addEventListener('mousedown',()=>startAlignMove(-1));
+barEl.addEventListener('mousedown',()=>startAlignMove(1));
+['mouseup','mouseleave'].forEach(ev=>{balEl.addEventListener(ev,stopAlignMove);barEl.addEventListener(ev,stopAlignMove);});
+balEl.addEventListener('touchstart',e=>{e.preventDefault();startAlignMove(-1);},{passive:false});
+barEl.addEventListener('touchstart',e=>{e.preventDefault();startAlignMove(1);},{passive:false});
+['touchend','touchcancel'].forEach(ev=>{balEl.addEventListener(ev,stopAlignMove);barEl.addEventListener(ev,stopAlignMove);});
+</script>
+</body>
+</html>

@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>묵찌빠</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #1a1a2e;
+      color: #eee;
+      font-family: 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container {
+      text-align: center;
+      max-width: 620px;
+      width: 90%;
+    }
+
+    h1 { font-size: 2.5rem; margin-bottom: 0.3rem; letter-spacing: 2px; }
+    .subtitle { color: #888; margin-bottom: 1.5rem; font-size: 0.9rem; }
+
+    /* 점수판 */
+    .scoreboard {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .score-card {
+      background: #16213e;
+      border-radius: 12px;
+      padding: 0.8rem 2rem;
+    }
+
+    .score-card .label { font-size: 0.75rem; color: #888; letter-spacing: 1px; margin-bottom: 0.3rem; }
+    .score-card .value { font-size: 2rem; font-weight: bold; }
+    .score-card.win .value  { color: #4ade80; }
+    .score-card.lose .value { color: #f87171; }
+
+    /* 페이즈 배너 */
+    .phase-banner {
+      display: inline-block;
+      padding: 0.4rem 1.4rem;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+      letter-spacing: 1px;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    .phase-banner.rps  { background: #2d2d5e; color: #a78bfa; }
+    .phase-banner.mjp  { background: #1e3a2f; color: #4ade80; }
+
+    /* 공격자 표시 */
+    .attacker-info {
+      font-size: 0.85rem;
+      color: #facc15;
+      margin-bottom: 1rem;
+      min-height: 1.4rem;
+      font-weight: bold;
+    }
+
+    /* 대결 */
+    .battle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 1.2rem;
+      min-height: 110px;
+    }
+
+    .player-side, .computer-side {
+      background: #16213e;
+      border-radius: 16px;
+      padding: 1rem 1.8rem;
+      flex: 1;
+      max-width: 170px;
+      transition: border 0.3s;
+      border: 2px solid transparent;
+    }
+
+    .player-side.attacker   { border-color: #facc15; }
+    .computer-side.attacker { border-color: #facc15; }
+
+    .side-label { font-size: 0.75rem; color: #888; margin-bottom: 0.4rem; letter-spacing: 1px; }
+    .choice-display { font-size: 3.2rem; line-height: 1; }
+    .vs { font-size: 1.4rem; font-weight: bold; color: #555; }
+
+    /* 결과 */
+    .result {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-bottom: 1.5rem;
+      min-height: 2.2rem;
+      transition: color 0.3s;
+    }
+
+    .result.win  { color: #4ade80; }
+    .result.lose { color: #f87171; }
+    .result.draw { color: #facc15; }
+    .result.info { color: #a78bfa; }
+
+    /* 버튼 */
+    .buttons {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 1.2rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-choice {
+      background: #16213e;
+      border: 2px solid #2d2d5e;
+      border-radius: 16px;
+      padding: 0.9rem 1.4rem;
+      cursor: pointer;
+      transition: transform 0.2s, border-color 0.2s, background 0.2s;
+      color: #eee;
+      font-size: 0.85rem;
+    }
+
+    .btn-choice .emoji { font-size: 2.6rem; display: block; margin-bottom: 0.3rem; }
+
+    .btn-choice:hover  { transform: scale(1.1); border-color: #7c73e6; background: #1e1e4a; }
+    .btn-choice:active { transform: scale(0.97); }
+
+    .btn-choice:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-reset {
+      background: transparent;
+      border: 1px solid #444;
+      color: #888;
+      padding: 0.5rem 1.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    .btn-reset:hover { border-color: #888; color: #ccc; }
+
+    /* 게임 오버 오버레이 */
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+
+    .overlay.show { display: flex; }
+
+    .overlay-box {
+      background: #16213e;
+      border-radius: 20px;
+      padding: 2.5rem 3rem;
+      text-align: center;
+    }
+
+    .overlay-box .big-emoji { font-size: 4rem; margin-bottom: 0.5rem; }
+    .overlay-box h2 { font-size: 2rem; margin-bottom: 0.5rem; }
+    .overlay-box p  { color: #888; margin-bottom: 1.5rem; font-size: 0.9rem; }
+
+    .btn-next {
+      background: #7c73e6;
+      border: none;
+      color: #fff;
+      padding: 0.7rem 2rem;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: bold;
+      transition: background 0.2s;
+    }
+
+    .btn-next:hover { background: #6b62d5; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>묵찌빠</h1>
+  <p class="subtitle">가위바위보로 공격자를 정하고, 묵찌빠로 승부!</p>
+
+  <div class="scoreboard">
+    <div class="score-card win">
+      <div class="label">나의 승리</div>
+      <div class="value" id="score-win">0</div>
+    </div>
+    <div class="score-card lose">
+      <div class="label">컴퓨터 승리</div>
+      <div class="value" id="score-lose">0</div>
+    </div>
+  </div>
+
+  <div class="phase-banner rps" id="phase-banner">1단계: 가위바위보</div>
+
+  <div class="attacker-info" id="attacker-info"></div>
+
+  <div class="battle">
+    <div class="player-side" id="player-side">
+      <div class="side-label">나</div>
+      <div class="choice-display" id="player-display">❓</div>
+    </div>
+    <div class="vs">VS</div>
+    <div class="computer-side" id="computer-side">
+      <div class="side-label">컴퓨터</div>
+      <div class="choice-display" id="computer-display">❓</div>
+    </div>
+  </div>
+
+  <div class="result info" id="result">가위바위보로 공격자를 정하세요!</div>
+
+  <div class="buttons">
+    <button class="btn-choice" id="btn-rock"     onclick="play('묵')">
+      <span class="emoji">✊</span>묵
+    </button>
+    <button class="btn-choice" id="btn-scissors" onclick="play('찌')">
+      <span class="emoji">✌️</span>찌
+    </button>
+    <button class="btn-choice" id="btn-paper"    onclick="play('빠')">
+      <span class="emoji">🖐️</span>빠
+    </button>
+  </div>
+
+  <button class="btn-reset" onclick="resetAll()">처음부터</button>
+</div>
+
+<!-- 게임 종료 오버레이 -->
+<div class="overlay" id="overlay">
+  <div class="overlay-box">
+    <div class="big-emoji" id="overlay-emoji"></div>
+    <h2 id="overlay-title"></h2>
+    <p id="overlay-desc"></p>
+    <button class="btn-next" onclick="nextRound()">다음 판</button>
+  </div>
+</div>
+
+<script>
+  const EMOJI = { '묵': '✊', '찌': '✌️', '빠': '🖐️' };
+  const CHOICES = ['묵', '찌', '빠'];
+
+  // 가위바위보 승패: player가 이기면 'win', 지면 'lose', 비기면 'draw'
+  // 묵 > 찌, 찌 > 빠, 빠 > 묵
+  function judge(a, b) {
+    if (a === b) return 'draw';
+    if (
+      (a === '묵' && b === '찌') ||
+      (a === '찌' && b === '빠') ||
+      (a === '빠' && b === '묵')
+    ) return 'win';
+    return 'lose';
+  }
+
+  // 게임 상태
+  let phase = 'rps';       // 'rps' | 'mjp'
+  let attacker = null;     // 'player' | 'computer' | null
+  let totalWin  = 0;
+  let totalLose = 0;
+
+  function play(choice) {
+    const computer = CHOICES[Math.floor(Math.random() * 3)];
+    document.getElementById('player-display').textContent   = EMOJI[choice];
+    document.getElementById('computer-display').textContent = EMOJI[computer];
+
+    const result = judge(choice, computer);
+
+    if (phase === 'rps') {
+      handleRPS(result);
+    } else {
+      handleMJP(result);
+    }
+  }
+
+  function handleRPS(result) {
+    const resultEl = document.getElementById('result');
+
+    if (result === 'draw') {
+      resultEl.className = 'result draw';
+      resultEl.textContent = '비겼습니다! 다시 가위바위보~';
+      return;
+    }
+
+    attacker = (result === 'win') ? 'player' : 'computer';
+    phase = 'mjp';
+    updateAttackerUI();
+
+    resultEl.className = 'result info';
+    if (attacker === 'player') {
+      resultEl.textContent = '내가 이겼으니 내가 공격자! 묵찌빠 시작~';
+    } else {
+      resultEl.textContent = '컴퓨터가 이겼으니 컴퓨터가 공격자! 묵찌빠 시작~';
+    }
+
+    document.getElementById('phase-banner').className = 'phase-banner mjp';
+    document.getElementById('phase-banner').textContent = '2단계: 묵찌빠';
+  }
+
+  function handleMJP(result) {
+    const resultEl = document.getElementById('result');
+
+    if (result === 'draw') {
+      // 현재 공격자가 승리!
+      if (attacker === 'player') {
+        totalWin++;
+        document.getElementById('score-win').textContent = totalWin;
+        showOverlay('win');
+      } else {
+        totalLose++;
+        document.getElementById('score-lose').textContent = totalLose;
+        showOverlay('lose');
+      }
+      return;
+    }
+
+    // 이긴 쪽이 새 공격자
+    attacker = (result === 'win') ? 'player' : 'computer';
+    updateAttackerUI();
+
+    resultEl.className = 'result info';
+    if (attacker === 'player') {
+      resultEl.textContent = '내가 공격자! 계속~';
+    } else {
+      resultEl.textContent = '컴퓨터가 공격자! 조심해~';
+    }
+  }
+
+  function updateAttackerUI() {
+    const ps = document.getElementById('player-side');
+    const cs = document.getElementById('computer-side');
+    const info = document.getElementById('attacker-info');
+
+    ps.classList.toggle('attacker', attacker === 'player');
+    cs.classList.toggle('attacker', attacker === 'computer');
+
+    if (attacker === 'player')   info.textContent = '⚔️ 공격자: 나 (같으면 내가 이긴다!)';
+    else if (attacker === 'computer') info.textContent = '⚔️ 공격자: 컴퓨터 (같으면 컴퓨터가 이긴다!)';
+    else info.textContent = '';
+  }
+
+  function showOverlay(outcome) {
+    const overlay = document.getElementById('overlay');
+    const emoji   = document.getElementById('overlay-emoji');
+    const title   = document.getElementById('overlay-title');
+    const desc    = document.getElementById('overlay-desc');
+
+    if (outcome === 'win') {
+      emoji.textContent = '🎉';
+      title.textContent = '내가 이겼다!';
+      title.style.color = '#4ade80';
+      desc.textContent  = '공격자로 묵찌빠에 성공했습니다!';
+    } else {
+      emoji.textContent = '😢';
+      title.textContent = '컴퓨터가 이겼다...';
+      title.style.color = '#f87171';
+      desc.textContent  = '컴퓨터가 공격자로 묵찌빠에 성공했습니다.';
+    }
+
+    overlay.classList.add('show');
+    setButtons(false);
+  }
+
+  function nextRound() {
+    document.getElementById('overlay').classList.remove('show');
+    startNewRound();
+  }
+
+  function startNewRound() {
+    phase    = 'rps';
+    attacker = null;
+
+    document.getElementById('player-display').textContent   = '❓';
+    document.getElementById('computer-display').textContent = '❓';
+    document.getElementById('player-side').classList.remove('attacker');
+    document.getElementById('computer-side').classList.remove('attacker');
+    document.getElementById('attacker-info').textContent = '';
+    document.getElementById('phase-banner').className    = 'phase-banner rps';
+    document.getElementById('phase-banner').textContent  = '1단계: 가위바위보';
+
+    const resultEl = document.getElementById('result');
+    resultEl.className = 'result info';
+    resultEl.textContent = '가위바위보로 공격자를 정하세요!';
+
+    setButtons(true);
+  }
+
+  function resetAll() {
+    totalWin  = 0;
+    totalLose = 0;
+    document.getElementById('score-win').textContent  = 0;
+    document.getElementById('score-lose').textContent = 0;
+    document.getElementById('overlay').classList.remove('show');
+    startNewRound();
+  }
+
+  function setButtons(enabled) {
+    ['btn-rock', 'btn-scissors', 'btn-paper'].forEach(id => {
+      document.getElementById(id).disabled = !enabled;
+    });
+  }
+</script>
+</body>
+</html>

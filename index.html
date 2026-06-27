@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>가위바위보</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #1a1a2e;
+      color: #eee;
+      font-family: 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container {
+      text-align: center;
+      max-width: 600px;
+      width: 90%;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.3rem;
+      letter-spacing: 2px;
+    }
+
+    .subtitle {
+      color: #888;
+      margin-bottom: 2rem;
+      font-size: 0.9rem;
+    }
+
+    /* 점수판 */
+    .scoreboard {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .score-card {
+      background: #16213e;
+      border-radius: 12px;
+      padding: 1rem 1.8rem;
+      min-width: 90px;
+    }
+
+    .score-card .label {
+      font-size: 0.75rem;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 0.3rem;
+    }
+
+    .score-card .value {
+      font-size: 2rem;
+      font-weight: bold;
+    }
+
+    .score-card.win .value  { color: #4ade80; }
+    .score-card.lose .value { color: #f87171; }
+    .score-card.draw .value { color: #facc15; }
+
+    /* 대결 화면 */
+    .battle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      min-height: 120px;
+    }
+
+    .player-side, .computer-side {
+      background: #16213e;
+      border-radius: 16px;
+      padding: 1.2rem 2rem;
+      flex: 1;
+      max-width: 180px;
+    }
+
+    .player-side .side-label,
+    .computer-side .side-label {
+      font-size: 0.75rem;
+      color: #888;
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .choice-display {
+      font-size: 3.5rem;
+      line-height: 1;
+      transition: transform 0.3s;
+    }
+
+    .vs {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #555;
+    }
+
+    /* 결과 */
+    .result {
+      font-size: 1.6rem;
+      font-weight: bold;
+      margin-bottom: 2rem;
+      min-height: 2.5rem;
+      transition: color 0.3s;
+    }
+
+    .result.win  { color: #4ade80; }
+    .result.lose { color: #f87171; }
+    .result.draw { color: #facc15; }
+
+    /* 선택 버튼 */
+    .buttons {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-choice {
+      background: #16213e;
+      border: 2px solid #2d2d5e;
+      border-radius: 16px;
+      padding: 1rem 1.5rem;
+      cursor: pointer;
+      transition: transform 0.2s, border-color 0.2s, background 0.2s;
+      color: #eee;
+      font-size: 0.85rem;
+    }
+
+    .btn-choice .emoji {
+      font-size: 2.8rem;
+      display: block;
+      margin-bottom: 0.4rem;
+    }
+
+    .btn-choice:hover {
+      transform: scale(1.1);
+      border-color: #7c73e6;
+      background: #1e1e4a;
+    }
+
+    .btn-choice:active {
+      transform: scale(0.97);
+    }
+
+    /* 초기화 버튼 */
+    .btn-reset {
+      background: transparent;
+      border: 1px solid #444;
+      color: #888;
+      padding: 0.5rem 1.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    .btn-reset:hover {
+      border-color: #888;
+      color: #ccc;
+    }
+
+    /* 버튼 클릭 시 흔들림 애니메이션 */
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+
+    .shake {
+      animation: shake 0.3s ease;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>가위바위보</h1>
+    <p class="subtitle">컴퓨터와 대결하세요!</p>
+
+    <div class="scoreboard">
+      <div class="score-card win">
+        <div class="label">승리</div>
+        <div class="value" id="score-win">0</div>
+      </div>
+      <div class="score-card draw">
+        <div class="label">무승부</div>
+        <div class="value" id="score-draw">0</div>
+      </div>
+      <div class="score-card lose">
+        <div class="label">패배</div>
+        <div class="value" id="score-lose">0</div>
+      </div>
+    </div>
+
+    <div class="battle">
+      <div class="player-side">
+        <div class="side-label">나</div>
+        <div class="choice-display" id="player-display">❓</div>
+      </div>
+      <div class="vs">VS</div>
+      <div class="computer-side">
+        <div class="side-label">컴퓨터</div>
+        <div class="choice-display" id="computer-display">❓</div>
+      </div>
+    </div>
+
+    <div class="result" id="result">선택하세요!</div>
+
+    <div class="buttons">
+      <button class="btn-choice" onclick="play('가위')">
+        <span class="emoji">✌️</span>
+        가위
+      </button>
+      <button class="btn-choice" onclick="play('바위')">
+        <span class="emoji">✊</span>
+        바위
+      </button>
+      <button class="btn-choice" onclick="play('보')">
+        <span class="emoji">🖐️</span>
+        보
+      </button>
+    </div>
+
+    <button class="btn-reset" onclick="resetScore()">점수 초기화</button>
+  </div>
+
+  <script>
+    const choices = ['가위', '바위', '보'];
+    const emoji = { '가위': '✌️', '바위': '✊', '보': '🖐️' };
+
+    const score = { win: 0, draw: 0, lose: 0 };
+
+    // 승패 판정: player가 이기면 true 반환
+    // 가위 > 보, 바위 > 가위, 보 > 바위
+    function getResult(player, computer) {
+      if (player === computer) return 'draw';
+      if (
+        (player === '가위' && computer === '보') ||
+        (player === '바위' && computer === '가위') ||
+        (player === '보'   && computer === '바위')
+      ) return 'win';
+      return 'lose';
+    }
+
+    function play(playerChoice) {
+      const computerChoice = choices[Math.floor(Math.random() * 3)];
+      const result = getResult(playerChoice, computerChoice);
+
+      document.getElementById('player-display').textContent = emoji[playerChoice];
+      document.getElementById('computer-display').textContent = emoji[computerChoice];
+
+      const resultEl = document.getElementById('result');
+      resultEl.className = 'result ' + result;
+
+      if (result === 'win') {
+        resultEl.textContent = '🎉 이겼습니다!';
+        score.win++;
+      } else if (result === 'lose') {
+        resultEl.textContent = '😢 졌습니다...';
+        score.lose++;
+      } else {
+        resultEl.textContent = '🤝 비겼습니다!';
+        score.draw++;
+      }
+
+      document.getElementById('score-win').textContent  = score.win;
+      document.getElementById('score-draw').textContent = score.draw;
+      document.getElementById('score-lose').textContent = score.lose;
+    }
+
+    function resetScore() {
+      score.win = score.draw = score.lose = 0;
+      document.getElementById('score-win').textContent  = 0;
+      document.getElementById('score-draw').textContent = 0;
+      document.getElementById('score-lose').textContent = 0;
+      document.getElementById('player-display').textContent   = '❓';
+      document.getElementById('computer-display').textContent = '❓';
+      const resultEl = document.getElementById('result');
+      resultEl.className = 'result';
+      resultEl.textContent = '선택하세요!';
+    }
+  </script>
+</body>
+</html>
